@@ -24,6 +24,8 @@ Check the TinyTapout documentation or [info.yaml](info.yaml).
 
 [https://peppergrayxyz.github.io/Potato-1/simulator/](https://peppergrayxyz.github.io/Potato-1/simulator/)
 
+<img src="doc/potato1_circuit.png" alt="Potato-1 circuit" height="480" />
+
 ## About Tiny Tapeout
 
 [TinyTapeout](https://tinytapeout.com) is an educational project that aims to make it easier and cheaper than ever to get your digital designs manufactured on a real chip!

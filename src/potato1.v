@@ -1,110 +1,81 @@
 
 `default_nettype none
 
-localparam CPU_INSTR_WITH   = 4;
-localparam CPU_INSTR_NUM    = 9;
-localparam CPU_MODE_WITH    = 3;
-localparam CPU_STAT_WITH    = 1;
-localparam CPU_CNTRL_WITH   = 9;
-localparam CPU_CMD_WITH     = 8;
-localparam CPU_LOOPCTR_WITH = 32;
+module xyz_peppergray_Potato1_Main(
+  input [7:0] io_in,
+  output [7:0] io_out
+);
 
-localparam CTRL_X_INC  = 0;
-localparam CTRL_X_DEC  = 1;
-localparam CTRL_A_INC  = 2;
-localparam CTRL_A_DEC  = 3;
-localparam CTRL_PUT    = 4;
-localparam CTRL_GET    = 5;
-localparam CTRL_LOOP   = 6;
-localparam CTRL_DONE   = 7;
-localparam CTRL_HALT   = 8;
+  localparam INSTR_WITH   = 4;
+  localparam INSTR_NUM    = 9;
+  localparam MODE_WITH    = 3;
+  localparam STAT_WITH    = 1;
+  localparam CNTRL_WITH   = 9;
+  localparam CMD_WITH     = 8;
+  localparam LOOPCTR_WITH = 32;
 
-localparam X_PC_INC  = 0;
-localparam X_PC_DEC  = 1;
+  localparam CTRL_X_INC  = 0;
+  localparam CTRL_X_DEC  = 1;
+  localparam CTRL_A_INC  = 2;
+  localparam CTRL_A_DEC  = 3;
+  localparam CTRL_PUT    = 4;
+  localparam CTRL_GET    = 5;
+  localparam CTRL_LOOP   = 6;
+  localparam CTRL_DONE   = 7;
+  localparam CTRL_HALT   = 8;
 
-localparam CMD_OFFSET = 2;
+  localparam X_PC_INC  = 0;
+  localparam X_PC_DEC  = 1;
 
-localparam MODE_REVERSE = 0;
-localparam MODE_SKIPCMD = 1;
-localparam MODE_WAIT_IO = 2;
+  localparam CMD_OFFSET = 2;
 
-localparam STAT_ZERO = 0;
+  localparam MODE_REVERSE = 0;
+  localparam MODE_SKIPCMD = 1;
+  localparam MODE_WAIT_IO = 2;
 
-module InstructionDecode
- #(parameter INSTR_WITH = CPU_INSTR_WITH,
-   parameter INSTR_NUM = CPU_INSTR_NUM)(
-  input Reset_n,
-  input Clock,
-  input [INSTR_WITH-1:0] Instruction,
-  output [CPU_INSTR_NUM-1:0] MicroInstruction
- );
-  
-  reg [INSTR_WITH-1:0] instruction;
-  reg [INSTR_NUM-1:0] microInstruction;
+  localparam STAT_ZERO = 0;
 
-  assign MicroInstruction = microInstruction;
+  wire Clock   = io_in[0];
+  wire Reset_n = io_in[1];
+
+  reg ZeroFlag;
+  reg IOWait;
+  reg [INSTR_WITH-1:0] Instruction;
 
   always @(posedge Clock or negedge Reset_n) begin
     if(~Reset_n) begin
-      instruction <= 4'b1111;
+      Instruction <= 4'b1111;
+      ZeroFlag    <= 0;
+      IOWait      <= 0;
     end
     else begin
-      instruction <= Instruction;
+      Instruction <= io_in[7:4];
+      ZeroFlag    <= io_in[3];
+      IOWait      <= (IOActivity && io_in[2]);
     end
   end
 
+  /* InstructionDecode */  
+  reg [INSTR_NUM-1:0] MicroInstruction;
+  
   always @ * begin
-    case(instruction)
-      4'b0000: begin microInstruction <= (1 << CTRL_X_INC); end
-      4'b0001: begin microInstruction <= (1 << CTRL_X_DEC); end
-      4'b0010: begin microInstruction <= (1 << CTRL_A_INC); end
-      4'b0011: begin microInstruction <= (1 << CTRL_A_DEC); end
-      4'b0100: begin microInstruction <= (1 << CTRL_PUT);   end
-      4'b0101: begin microInstruction <= (1 << CTRL_GET);   end
-      4'b0110: begin microInstruction <= (1 << CTRL_LOOP);  end
-      4'b0111: begin microInstruction <= (1 << CTRL_DONE);  end
-      4'b1111: begin microInstruction <= (1 << CTRL_HALT);  end
-      default: begin microInstruction <= 0; /* CTRL_NOP */  end
+    case(Instruction)
+      4'b0000: begin MicroInstruction <= (1 << CTRL_X_INC); end
+      4'b0001: begin MicroInstruction <= (1 << CTRL_X_DEC); end
+      4'b0010: begin MicroInstruction <= (1 << CTRL_A_INC); end
+      4'b0011: begin MicroInstruction <= (1 << CTRL_A_DEC); end
+      4'b0100: begin MicroInstruction <= (1 << CTRL_PUT);   end
+      4'b0101: begin MicroInstruction <= (1 << CTRL_GET);   end
+      4'b0110: begin MicroInstruction <= (1 << CTRL_LOOP);  end
+      4'b0111: begin MicroInstruction <= (1 << CTRL_DONE);  end
+      4'b1111: begin MicroInstruction <= (1 << CTRL_HALT);  end
+      default: begin MicroInstruction <= 0; /* CTRL_NOP */  end
     endcase
   end
 
-endmodule
-
-module StateRegister
- #(parameter STAT_WITH = CPU_STAT_WITH)(
-  input Reset_n,
-  input Clock,
-  input [STAT_WITH-1:0] State,
-  output ZeroFlag
-);
-
-  reg [STAT_WITH-1:0] state;
-
-  assign ZeroFlag = state[STAT_ZERO];
-
-  always @(posedge Clock or negedge Reset_n) begin
-    if(~Reset_n) begin
-      state <= 0;
-    end
-    else begin
-      state <= State;
-    end
-  end
-
-endmodule
-
-module LoopControl
-#(parameter MODE_WITH = CPU_MODE_WITH,
-  parameter STAT_WITH = CPU_STAT_WITH,
-  parameter INSTR_NUM = CPU_INSTR_NUM)(
-  input Reset_n,
-  input Clock,
-  input ZeroFlag,
-  input [INSTR_NUM-1:0] MicroInstruction,
-  output Reverse,
-  output SkipCmd
-);
-
+  /* LoopControl */
+  reg Reverse;
+  reg SkipCmd;
   reg reverse;
   reg skipCmd;  
   assign Reverse = setReverse ? 1 : clrReverse ? 0 : reverse;
@@ -131,8 +102,8 @@ module LoopControl
   wire Down  = (reverse ? Loop : Done);
   wire Store = setSkipCmd;
   
-  reg [CPU_LOOPCTR_WITH-1:0] LoopCounter;
-  reg [CPU_LOOPCTR_WITH-1:0] LoopJmpMark;
+  reg [LOOPCTR_WITH-1:0] LoopCounter;
+  reg [LOOPCTR_WITH-1:0] LoopJmpMark;
   wire markMatch     = (LoopJmpMark == LoopCounter);
 
   always @(negedge Clock or negedge Reset_n) begin
@@ -169,157 +140,40 @@ module LoopControl
     end
   end
 
-endmodule
-
-module ExecutionControl
-#(parameter INSTR_NUM = CPU_INSTR_NUM,
-  parameter CNTRL_WITH = CPU_CNTRL_WITH)(
-  input Reset_n,
-  input Clock,
-  input [CPU_INSTR_NUM-1:0] MicroInstruction,
-  input SkipCmd,
-  input IOWait,
-  input IOActivity,
-  output [CNTRL_WITH-1:0] Control,
-  output WaitIO 
-);
-  reg ioWait;
-  assign WaitIO = IOActivity && ioWait;
-  
-  always @(posedge Clock or negedge Reset_n) begin
-    if(~Reset_n) begin
-      ioWait <= 0;
-    end
-    else begin
-      ioWait <= IOWait;
-    end
-  end
-
-  reg [CNTRL_WITH-1:0] control;
-  assign Control = control;
+  /* ExecutionControl */
+  reg [CNTRL_WITH-1:0] Control;
   
   always @ * begin
-    if(WaitIO) begin
-      control <= control;
+    if(IOWait) begin
+      Control <= Control;
     end
     else if(SkipCmd) begin
-      control <= 0;
+      Control <= 0;
     end
     else begin
-      control <= MicroInstruction;
+      Control <= MicroInstruction;
     end
   end
 
-endmodule
+  /* ProgramCounter */
+  reg [1:0] Control_PC;
+    
+  assign Control_PC[X_PC_INC] =  !Reverse && !(Control[CTRL_HALT] || IOWait);
+  assign Control_PC[X_PC_DEC] =   Reverse && !(Control[CTRL_HALT] || IOWait);
 
-module ProgramCounter(
-  input Reverse,
-  input Halt,
-  input WaitIO,
-  output [1:0] Control_PC
-);
+  /* OutputController */
+  reg [CMD_WITH-1:0] Command;
+  assign io_out = Command;
 
-  assign Control_PC[X_PC_INC] =  !Reverse && !(Halt || WaitIO);
-  assign Control_PC[X_PC_DEC] =   Reverse && !(Halt || WaitIO);
-
-endmodule
-
-module OutputController
-#(parameter CNTRL_WITH = CPU_CNTRL_WITH,
-  parameter CMD_WITH   = CPU_CMD_WITH)(
-  input Reset_n,
-  input Clock,
-  input [1:0] ProgramCounter,
-  input [CNTRL_WITH-1:0] Control,
-  output [CMD_WITH-1:0] Command,
-  output IOActivity
-);
-
-  reg [CMD_WITH-1:0] command;
-  assign Command = command;
-  assign IOActivity = (command[CMD_OFFSET + CTRL_GET] || command[CMD_OFFSET + CTRL_PUT]);
+  wire IOActivity = (Command[CMD_OFFSET + CTRL_GET] || Command[CMD_OFFSET + CTRL_PUT]);
 
   always @(negedge Clock or negedge Reset_n) begin
     if(~Reset_n) begin
-      command <= 0;
+      Command <= 0;
     end
     else begin
-      command <= { Control[5:0], ProgramCounter[1:0]};
+      Command <= { Control[5:0], Control_PC[1:0]};
     end
   end
-
-endmodule
-
-module ControlUnit
-#(parameter INSTR_WITH = CPU_INSTR_WITH,
-  parameter INSTR_NUM  = CPU_INSTR_NUM,
-  parameter MODE_WITH  = CPU_MODE_WITH,
-  parameter STAT_WITH  = CPU_STAT_WITH,
-  parameter CNTRL_WITH = CPU_CNTRL_WITH,
-  parameter CMD_WITH   = CPU_CMD_WITH)(
-  input Clock,
-  input Reset_n,
-  input IOWait,
-  input [STAT_WITH-1:0] State,
-  input [INSTR_WITH-1:0] Instruction,
-  output [CMD_WITH-1:0] Command
-  );
-
-  wire [INSTR_NUM-1:0] MicroInstruction;
-  wire [CNTRL_WITH-1:0] Control;
-  wire [1:0]            Control_PC;
-
-  wire ZeroFlag;
-
-  wire Set_Reverse;
-  wire Clr_Reverse;
-  wire Set_SkipCmd;
-  wire Clr_SkipCmd;
-  wire Set_WaitIO;
-  wire Clr_WaitIO;
-  wire Reverse;
-  wire SkipCmd;
-  wire WaitIO;
-
-  wire IOActivity;
-
-  InstructionDecode 
-    #(INSTR_WITH, CNTRL_WITH) 
-    Decode(Reset_n, Clock, Instruction, 
-    MicroInstruction);
-
-  StateRegister
-    #(STAT_WITH)
-    StateReg(Reset_n, Clock, State,
-    ZeroFlag);
-
-  LoopControl
-    #(MODE_WITH, STAT_WITH, INSTR_NUM) 
-    Loop(Reset_n, Clock, ZeroFlag, MicroInstruction, 
-    Reverse, SkipCmd
-    );
-
-  ExecutionControl
-    #(INSTR_NUM, CNTRL_WITH)
-    Exec(Reset_n, Clock, MicroInstruction, SkipCmd, IOWait, IOActivity,
-        Control, WaitIO);
-
-  ProgramCounter
-    PC(Reverse, Control[CTRL_HALT], WaitIO, 
-    Control_PC);
-
-  OutputController
-    #(CNTRL_WITH, CMD_WITH) 
-    Out(Reset_n, Clock, Control_PC, Control, 
-    Command, IOActivity);
-
-endmodule
-
-module xyz_peppergray_Potato1_Main(
-  input [7:0] io_in,
-  output [7:0] io_out
-);
-
-ControlUnit CU0(io_in[0],io_in[1],io_in[2],io_in[3],io_in[7:4],io_out);
 
 endmodule
