@@ -12,7 +12,7 @@ Potato-1 is a control unit, which processes 4bit instructions and controls CPU r
 
 Loops requiere some logic is, but there is no stack, neither are there jumps or labels to jump to. Insteady the code is executed in reverse direction to execute loops. To find the matching '[' or ']' a 32bit counter is used. Each loop instruction will increment or decrement the counter accordingly. If we skip from start to end or end to start, the target value is stored in another 32bit register. If both values match, the execution continous. As there is no jump instruction, the programm is executed one instruction at a time, but if the CU 'jumps' intermediate instructions are ignored. If the 'jump' is from end to start, the execution direction is reversed, i.e. the program counter is decrement until the matching loop instruction is found.
 
-Read an write instructions relay on some external IO logic, which puts the value to some kind of IO or gets a value from there. IO indicates that it is done with the IO-Ready pin.
+Read an write instructions relay on some external IO logic, which puts the value to some kind of IO or gets a value from there. IO indicates that it is no yet done with the IO-Wait pin.
 
 Additionaly to the 8 original brainfuck instructions there is a HALT instruction to stop execution and a NOP instructions to do nothing, also there are unused instruction (some of them may be used to extend the instruction set in a later itteration).
 

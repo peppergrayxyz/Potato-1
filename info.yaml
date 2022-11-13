@@ -33,7 +33,7 @@ documentation:
         0010  +       Increment value
         0011  -       Decrement value
         0100  .       Write value
-        0101  ,       Ready value
+        0101  ,       Read value
         0110  [       Start Loop (enter if value is non-zero, else jump to matchin ']')
         0111  ]       End Loop (leave if value is zero, , else jump to matchin '[')
         1000  NOP     No Operation
@@ -45,7 +45,7 @@ documentation:
         - value (A++, A--)
         - read/write value (Put, Get)
 
-        If <Put> or <Get> pin is set, the CU will pause execution until <IO Ready> is set. If IO Ready is already set, the CU will immidiatly execute the next command without waiting.
+        If <Put> or <Get> pin is set, the CU will pause execution until <IO Wait> is unset. If IO Wait is already unset, the CU will immidiatly execute the next command without waiting.
 
   # Longer description of how the project works
   how_to_test: |
@@ -76,7 +76,7 @@ documentation:
   inputs: # a description of what the inputs do
     - Clock
     - Reset_n
-    - IO Ready # Put/Get value to/from cell is done
+    - IO Wait # Wait till Put/Get value to/from cell is done
     - Zero Flag # Cell value is zero
     - Instruction[0]
     - Instruction[1]

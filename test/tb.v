@@ -10,7 +10,7 @@ module tb (
     // testbench is controlled by test.py
     input clk,
     input rst_n,
-    input ioready,
+    input iowait,
     input zeroflag,
     input [3:0] instruction,
     output [1:0] pc,
@@ -25,7 +25,7 @@ module tb (
     end
 
     // wire up the inputs and outputs
-    wire [7:0] inputs = {instruction, zeroflag, ioready, rst_n, clk};
+    wire [7:0] inputs = {instruction, zeroflag, iowait, rst_n, clk};
     wire [7:0] outputs;
     assign pc = outputs[1:0];
     assign command = outputs[7:2];

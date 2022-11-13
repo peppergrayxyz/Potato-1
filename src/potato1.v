@@ -234,20 +234,20 @@ module ExecutionControl
   input Clock,
   input [CPU_INSTR_NUM-1:0] MicroInstruction,
   input SkipCmd,
-  input IOReady,
+  input IOWait,
   input IOActivity,
   output [CNTRL_WITH-1:0] Control,
   output WaitIO 
 );
-  reg ioReady;
-  assign WaitIO = IOActivity && !ioReady;
+  reg ioWait;
+  assign WaitIO = IOActivity && ioWait;
   
   always @(posedge Clock or negedge Reset_n) begin
     if(~Reset_n) begin
-      ioReady <= 0;
+      ioWait <= 0;
     end
     else begin
-      ioReady <= IOReady;
+      ioWait <= IOWait;
     end
   end
 
@@ -315,7 +315,7 @@ module ControlUnit
   parameter CMD_WITH   = CPU_CMD_WITH)(
   input Clock,
   input Reset_n,
-  input IOReady,
+  input IOWait,
   input [STAT_WITH-1:0] State,
   input [INSTR_WITH-1:0] Instruction,
   output [CMD_WITH-1:0] Command
@@ -357,7 +357,7 @@ module ControlUnit
 
   ExecutionControl
     #(INSTR_NUM, CNTRL_WITH)
-    Exec(Reset_n, Clock, MicroInstruction, SkipCmd, IOReady, IOActivity,
+    Exec(Reset_n, Clock, MicroInstruction, SkipCmd, IOWait, IOActivity,
         Control, WaitIO);
 
   ProgramCounter

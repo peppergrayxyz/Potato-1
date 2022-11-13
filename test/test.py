@@ -47,7 +47,7 @@ async def init(dut):
     
     await reset(dut)
 
-def t(instruction, command="x", pc="x", zeroflag="x", ioready="x"):
+def t(instruction, command="x", pc="x", zeroflag="x", iowait="x"):
     test = {
         "instruction": instruction
     }
@@ -58,8 +58,8 @@ def t(instruction, command="x", pc="x", zeroflag="x", ioready="x"):
         test["pc"] = pc
     if zeroflag != "x":
         test["zeroflag"] = zeroflag
-    if ioready != "x":
-        test["ioready"] = ioready
+    if iowait != "x":
+        test["iowait"] = iowait
 
     return test
 
@@ -78,8 +78,8 @@ async def run_sequence(dut, sequence):
                     dut.instruction.value = instructions[x[key]]
                 case "zeroflag":
                     dut.zeroflag.value = x[key]
-                case "ioready":
-                    dut.ioready.value = x[key]
+                case "iowait":
+                    dut.iowait.value = x[key]
         
         await RisingEdge(dut.clk)
 
@@ -190,7 +190,7 @@ async def test_put_no_wait(dut):
     await init(dut)
     
     await run_sequence(dut, [
-        t(".", "PUT", 1, ioready=1), 
+        t(".", "PUT", 1, iowait=0), 
         t("+", "INC_A", 1),     
         t("NOP")
     ])
@@ -201,7 +201,7 @@ async def test_get_no_wait(dut):
     await init(dut)
     
     await run_sequence(dut, [
-        t(",", "GET",   1, ioready=1), 
+        t(",", "GET",   1, iowait=0), 
         t("+", "INC_A", 1),     
         t("NOP")
     ])
@@ -212,12 +212,12 @@ async def test_put_wait(dut):
     await init(dut)
 
     await run_sequence(dut, [
-        t(".", "PUT", 1, ioready=0), 
+        t(".", "PUT", 1, iowait=1), 
         t("+", "PUT", 0),  
         t("-", "PUT", 0), 
         t(">", "PUT", 0), 
         t("<", "PUT", 0),   
-        t("+", "INC_A", 1, ioready=1), 
+        t("+", "INC_A", 1, iowait=0), 
         t("NOP")
     ])
     
@@ -227,12 +227,12 @@ async def test_get_wait(dut):
     await init(dut)
 
     await run_sequence(dut, [
-        t(",", "GET", 1, ioready=0), 
+        t(",", "GET", 1, iowait=1), 
         t("+", "GET", 0),  
         t("-", "GET", 0), 
         t(">", "GET", 0), 
         t("<", "GET", 0),   
-        t("+", "INC_A", 1, ioready=1), 
+        t("+", "INC_A", 1, iowait=0), 
         t("NOP")
     ])
 
