@@ -40,7 +40,7 @@ module InstructionDecode
  );
   
   reg [INSTR_WITH-1:0] instruction;
-  reg [CPU_INSTR_NUM-1:0] microInstruction;
+  reg [INSTR_NUM-1:0] microInstruction;
 
   assign MicroInstruction = microInstruction;
 
@@ -90,62 +90,6 @@ module StateRegister
       state <= State;
     end
   end
-
-endmodule
-
-module ExecutionMode
- #(parameter MODE_WITH = CPU_MODE_WITH)(
-  input Reset_n,
-  input Set_Reverse,
-  input Clr_Reverse,
-  input Set_SkipCmd,
-  input Clr_SkipCmd,
-  input Set_WaitIO,
-  input Clr_WaitIO,
-  output Reverse,
-  output SkipCmd,
-  output WaitIO
-);
-
-
-  wire [MODE_WITH-1:0] Set;
-  wire [MODE_WITH-1:0] Clr;
-  reg [MODE_WITH-1:0] Val;
-  wire [MODE_WITH-1:0] trigger;
-
-  assign Set[MODE_REVERSE] = Set_Reverse;
-  assign Clr[MODE_REVERSE] = Clr_Reverse;
-  assign Reverse = Val[MODE_REVERSE];
-  
-  assign Set[MODE_SKIPCMD] = Set_SkipCmd;
-  assign Clr[MODE_SKIPCMD] = Clr_SkipCmd;
-  assign SkipCmd = Val[MODE_SKIPCMD];
-  
-  assign Set[MODE_WAIT_IO] = Set_WaitIO;
-  assign Clr[MODE_WAIT_IO] = Clr_WaitIO;
-  assign WaitIO = Val[MODE_WAIT_IO];
-  
-  genvar i;
-
-  generate
-    for(i = 0; i < MODE_WITH; i = i+1)
-    begin: Gen_StatusRegisters
-
-      assign trigger[i] = Set[i] || Clr[i];
-
-      always @(posedge trigger[i] or negedge Reset_n) begin
-        if(~Reset_n) begin
-          Val[i] <= 0;
-        end
-        else if(Set[i]) begin
-          Val[i] <= 1;
-        end
-        else begin
-          Val[i] <= 0;
-        end
-      end
-    end
-  endgenerate
 
 endmodule
 
@@ -269,14 +213,14 @@ module ExecutionControl
 endmodule
 
 module ProgramCounter(
-  input ReverseDirection,
+  input Reverse,
   input Halt,
-  input Mode_WaitIO,
+  input WaitIO,
   output [1:0] Control_PC
 );
 
-  assign Control_PC[X_PC_INC] =  !ReverseDirection && !(Halt || Mode_WaitIO);
-  assign Control_PC[X_PC_DEC] =   ReverseDirection && !(Halt || Mode_WaitIO);
+  assign Control_PC[X_PC_INC] =  !Reverse && !(Halt || WaitIO);
+  assign Control_PC[X_PC_DEC] =   Reverse && !(Halt || WaitIO);
 
 endmodule
 
@@ -321,7 +265,7 @@ module ControlUnit
   output [CMD_WITH-1:0] Command
   );
 
-  wire [CPU_INSTR_NUM-1:0] MicroInstruction;
+  wire [INSTR_NUM-1:0] MicroInstruction;
   wire [CNTRL_WITH-1:0] Control;
   wire [1:0]            Control_PC;
 
