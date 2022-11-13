@@ -189,9 +189,6 @@ module LoopControl
   
   reg [CPU_LOOPCTR_WITH-1:0] LoopCounter;
   reg [CPU_LOOPCTR_WITH-1:0] LoopJmpMark;
-  reg [CPU_LOOPCTR_WITH-1:0] nextCounter;
-
-  assign nextCounter = LoopCounter + (Count ? (Up ? 1 : Down ? -1 : 0) : 0);
   wire markMatch     = (LoopJmpMark == LoopCounter);
 
   always @(negedge Clock or negedge Reset_n) begin
@@ -204,11 +201,11 @@ module LoopControl
     else begin
 
       if(Count) begin    
-        LoopCounter <= nextCounter;
+        LoopCounter <= LoopCounter + (Count ? (Up ? 1 : Down ? -1 : 0) : 0);
       end
       
       if(Store) begin
-        LoopJmpMark <= nextCounter;
+        LoopJmpMark <= LoopCounter + (Count ? (Up ? 1 : Down ? -1 : 0) : 0);
       end
 
       if(clrReverse) begin
