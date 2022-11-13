@@ -183,8 +183,8 @@ module LoopControl
   wire clrReverse = Loop ? clrReverse_L : 0;
 
   wire Count = !((!reverse && setReverse) || (reverse && clrReverse));
-  wire Up    = (Reverse ? Done : Loop);
-  wire Down  = (Reverse ? Loop : Done);
+  wire Up    = (reverse ? Done : Loop);
+  wire Down  = (reverse ? Loop : Done);
   wire Store = setSkipCmd;
   
   reg [CPU_LOOPCTR_WITH-1:0] LoopCounter;
