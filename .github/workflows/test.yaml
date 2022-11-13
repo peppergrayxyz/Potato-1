@@ -1,0 +1,34 @@
+name: test
+# either manually started, or on a schedule
+on: [push, workflow_dispatch]
+jobs:
+  test:
+    # ubuntu
+    runs-on: ubuntu-22.04
+    steps:
+      # need the repo checked out
+      - name: checkout repo
+        uses: actions/checkout@v3
+
+      # need python
+      - name: setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - run: pip install cocotb pytest
+
+      # install tools
+      - name: install iverilog verilator
+        run: |
+          sudo apt install iverilog verilator
+          iverilog -V
+          cocotb-config --libpython
+          cocotb-config --python-bin
+
+      # run test
+      - name: test
+        run: |
+          cd test
+          make
+          # make will return success even if the test fails, so check for failure in the results.xml
+          ! grep failure results.xml

@@ -2,7 +2,3 @@
 .idea
 .vscode
 *.vcd
-test/tb.vcd
-test/sim_build
-test/results.xml
-test/__pycache__

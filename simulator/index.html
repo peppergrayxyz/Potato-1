@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+    <title>Simulator</title>
+    <!--<script type="text/javascript" src="node_modules/digitaljs/dist/main.js"></script>-->
+    <script type="text/javascript" src="digitaljs.js"></script>
+    <script type="text/javascript" src="simulator.js"></script>
+</head>
+  <body>
+    <div>
+        <button name="start" type="button">▶️</button>
+        <button name="stop" type="button">⏹️</button>
+    </div>
+    <div id="paper">
+    </div>
+    <div>
+        <input name="fixed" type="checkbox">Fixed Mode</input>
+        <button name="json" type="button">Serialize and Reload</button>
+        <input name="layout" type="checkbox">Include layout information</button>
+    </div>
+    <div>
+        <button name="ppt_up" type="button">+</button><button name="ppt_down">-</button><button name="left">&lt;</button><button name="right">&gt;</button><button name="live">live</button>
+    </div>
+    <div id="monitor">
+    </div>
+    <div id="iopanel">
+    </div>
+  </body>
+</html>

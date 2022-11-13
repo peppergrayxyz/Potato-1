@@ -1,4 +1,4 @@
-![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg)
+![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg)
 
 # Potato-1
 
@@ -19,6 +19,10 @@ Additionaly to the 8 original brainfuck instructions there is a HALT instruction
 ## Details
 
 Check the TinyTapout documentation or [info.yaml](info.yaml).
+
+## Simulator
+
+[https://peppergrayxyz.github.io/Potato-1/simulator/](https://peppergrayxyz.github.io/Potato-1/simulator/)
 
 ## About Tiny Tapeout
 
