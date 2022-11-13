@@ -67,12 +67,10 @@ module xyz_peppergray_Potato1_top(
   end
 
   /* Loop Control */
-  reg Reverse;
-  reg SkipCmd;
   reg reverse;
   reg skipCmd;  
-  assign Reverse = setReverse ? 1 : clrReverse ? 0 : reverse;
-  assign SkipCmd = setSkipCmd ? 1 : clrSkipCmd ? 0 : skipCmd;
+  wire Reverse = setReverse | (reverse & ~clrReverse);
+  wire SkipCmd = setSkipCmd | (skipCmd & ~clrSkipCmd);
 
   wire Loop = MicroInstruction[CTRL_LOOP];
   wire Done = MicroInstruction[CTRL_DONE];
@@ -122,10 +120,10 @@ module xyz_peppergray_Potato1_top(
   end
 
   /* ProgramCounter */
-  reg [1:0] Control_PC;
+  wire [1:0] Control_PC;
     
-  assign Control_PC[X_PC_INC] = !Reverse && !(Control[CTRL_HALT] || IOWait);
-  assign Control_PC[X_PC_DEC] =  Reverse && !(Control[CTRL_HALT] || IOWait);
+  assign Control_PC[X_PC_INC] = ~Reverse & ~(Control[CTRL_HALT] | IOWait);
+  assign Control_PC[X_PC_DEC] =  Reverse & ~(Control[CTRL_HALT] | IOWait);
 
   /* Output */
   reg [CMD_WITH-1:0] Command;
