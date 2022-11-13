@@ -12,7 +12,7 @@ module xyz_peppergray_Potato1_Main(
   localparam STAT_WITH    = 1;
   localparam CNTRL_WITH   = 9;
   localparam CMD_WITH     = 8;
-  localparam LOOPCTR_WITH = 32;
+  localparam LOOPCTR_WITH = 16;
 
   localparam CTRL_X_INC  = 0;
   localparam CTRL_X_DEC  = 1;
