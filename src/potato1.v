@@ -1,15 +1,13 @@
 
 `default_nettype none
 
-module xyz_peppergray_Potato1_Main(
+module xyz_peppergray_Potato1_top(
   input [7:0] io_in,
   output [7:0] io_out
 );
 
   localparam INSTR_WITH   = 4;
   localparam INSTR_NUM    = 9;
-  localparam MODE_WITH    = 3;
-  localparam STAT_WITH    = 1;
   localparam CNTRL_WITH   = 9;
   localparam CMD_WITH     = 8;
   localparam LOOPCTR_WITH = 16;
@@ -29,12 +27,6 @@ module xyz_peppergray_Potato1_Main(
 
   localparam CMD_OFFSET = 2;
 
-  localparam MODE_REVERSE = 0;
-  localparam MODE_SKIPCMD = 1;
-  localparam MODE_WAIT_IO = 2;
-
-  localparam STAT_ZERO = 0;
-
   wire Clock   = io_in[0];
   wire Reset_n = io_in[1];
 
@@ -42,9 +34,10 @@ module xyz_peppergray_Potato1_Main(
   reg IOWait;
   reg [INSTR_WITH-1:0] Instruction;
 
+  /* Input */  
   always @(posedge Clock or negedge Reset_n) begin
     if(~Reset_n) begin
-      Instruction <= 4'b1111;
+      Instruction <= 4'b1111; /* Halt */
       ZeroFlag    <= 0;
       IOWait      <= 0;
     end
@@ -55,7 +48,7 @@ module xyz_peppergray_Potato1_Main(
     end
   end
 
-  /* InstructionDecode */  
+  /* Instruction Decode */  
   reg [INSTR_NUM-1:0] MicroInstruction;
   
   always @ * begin
@@ -73,7 +66,7 @@ module xyz_peppergray_Potato1_Main(
     endcase
   end
 
-  /* LoopControl */
+  /* Loop Control */
   reg Reverse;
   reg SkipCmd;
   reg reverse;
@@ -98,8 +91,8 @@ module xyz_peppergray_Potato1_Main(
   wire clrReverse = Loop ? clrReverse_L : 0;
 
   wire Count = !((!reverse && setReverse) || (reverse && clrReverse));
-  wire Up    = (reverse ? Done : Loop);
-  wire Down  = (reverse ? Loop : Done);
+  wire Up    = Count && (reverse ? Done : Loop);
+  wire Down  = Count && (reverse ? Loop : Done);
   wire Store = setSkipCmd;
   
   reg [LOOPCTR_WITH-1:0] LoopCounter;
@@ -114,54 +107,27 @@ module xyz_peppergray_Potato1_Main(
       skipCmd     <= 0;
     end
     else begin
-
-      if(Count) begin    
-        LoopCounter <= LoopCounter + (Count ? (Up ? 1 : Down ? -1 : 0) : 0);
-      end
-      
-      if(Store) begin
-        LoopJmpMark <= LoopCounter + (Count ? (Up ? 1 : Down ? -1 : 0) : 0);
-      end
-
-      if(clrReverse) begin
-        reverse <= 0;
-      end
-      else if(setReverse) begin
-        reverse <= 1;
-      end
-
-      if(clrSkipCmd) begin
-        skipCmd <= 0;
-      end
-      else if(setSkipCmd) begin
-        skipCmd     <= 1;
-      end
-
+      LoopCounter <= LoopCounter + (Count ? (Up ? 1 : Down ? -1 : 0) : 0);
+      LoopJmpMark <= (Store ? LoopCounter + (Up ? 1 : Down ? -1 : 0) : LoopJmpMark);
+      reverse     <= clrReverse ? 0 : setReverse ? 1 : reverse;
+      skipCmd     <= clrSkipCmd ? 0 : setSkipCmd ? 1 : skipCmd;
     end
   end
 
-  /* ExecutionControl */
+  /* Execution Control */
   reg [CNTRL_WITH-1:0] Control;
   
   always @ * begin
-    if(IOWait) begin
-      Control <= Control;
-    end
-    else if(SkipCmd) begin
-      Control <= 0;
-    end
-    else begin
-      Control <= MicroInstruction;
-    end
+    Control = IOWait ? Control : SkipCmd ? 0 : MicroInstruction;
   end
 
   /* ProgramCounter */
   reg [1:0] Control_PC;
     
-  assign Control_PC[X_PC_INC] =  !Reverse && !(Control[CTRL_HALT] || IOWait);
-  assign Control_PC[X_PC_DEC] =   Reverse && !(Control[CTRL_HALT] || IOWait);
+  assign Control_PC[X_PC_INC] = !Reverse && !(Control[CTRL_HALT] || IOWait);
+  assign Control_PC[X_PC_DEC] =  Reverse && !(Control[CTRL_HALT] || IOWait);
 
-  /* OutputController */
+  /* Output */
   reg [CMD_WITH-1:0] Command;
   assign io_out = Command;
 

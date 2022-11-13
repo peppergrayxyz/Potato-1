@@ -31,9 +31,9 @@ module tb (
     assign command = outputs[7:2];
 
     // instantiate the DUT
-     xyz_peppergray_Potato1_Main main(
+    xyz_peppergray_Potato1_top dut(
         .io_in  (inputs),
         .io_out (outputs)
-        );
+    );
 
 endmodule

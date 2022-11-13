@@ -20,11 +20,19 @@ Additionaly to the 8 original brainfuck instructions there is a HALT instruction
 
 Check the TinyTapout documentation or [info.yaml](info.yaml).
 
-## Simulator
+### Simulation
 
 [https://peppergrayxyz.github.io/Potato-1/simulator/](https://peppergrayxyz.github.io/Potato-1/simulator/)
 
-<img src="doc/potato1_circuit.png" alt="Potato-1 circuit" height="480" />
+### Circuit
+
+<img src="doc/circuit.svg" alt="Potato-1 circuit" height="480" />
+
+### Layout
+
+[3D Render](https://peppergrayxyz.github.io/Potato-1/)
+
+<img src="https://peppergrayxyz.github.io/Potato-1/gds_render.svg" alt="Potato-1 circuit" height="600" />
 
 ## About Tiny Tapeout
 
