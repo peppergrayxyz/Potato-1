@@ -1,0 +1,41 @@
+[*]
+[*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
+[*] Sun Nov 13 12:49:27 2022
+[*]
+[dumpfile] "..\tb.vcd"
+[dumpfile_mtime] "Sun Nov 13 12:39:30 2022"
+[dumpfile_size] 33291
+[savefile] "C:\dev\tt2\Potato-1\test\GTKWave\tb.gtkw"
+[timestart] 0
+[size] 1536 889
+[pos] -1 -1
+*-25.000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb.
+[treeopen] tb.main.
+[treeopen] tb.main.CU0.
+[sst_width] 211
+[signals_width] 275
+[sst_expanded] 1
+[sst_vpaned_height] 246
+@28
+tb.main.CU0.Loop.Clock
+tb.main.CU0.Reset_n
+@200
+-
+@28
+tb.main.CU0.ZeroFlag
+tb.main.CU0.WaitIO
+@2022
+^2 Instruction.txt
+tb.main.CU0.Instruction[3:0]
+@2028
+^4 MicroInstruction.txt
+tb.main.CU0.Decode.MicroInstruction[8:0]
+@200
+-
+@28
+tb.pc[1:0]
+@22
+tb.command[5:0]
+[pattern_trace] 1
+[pattern_trace] 0

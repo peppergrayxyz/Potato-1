@@ -231,6 +231,7 @@ module ExecutionControl
 #(parameter INSTR_NUM = CPU_INSTR_NUM,
   parameter CNTRL_WITH = CPU_CNTRL_WITH)(
   input Reset_n,
+  input Clock,
   input [CPU_INSTR_NUM-1:0] MicroInstruction,
   input SkipCmd,
   input IOReady,
@@ -238,20 +239,15 @@ module ExecutionControl
   output [CNTRL_WITH-1:0] Control,
   output WaitIO 
 );
-  reg waitIO;
-  assign WaitIO  = waitIO && !IOReady; 
-
-  always @ * begin
+  reg ioReady;
+  assign WaitIO = IOActivity && !ioReady;
+  
+  always @(posedge Clock or negedge Reset_n) begin
     if(~Reset_n) begin
-      waitIO <= 0;
+      ioReady <= 0;
     end
     else begin
-      if(IOActivity || (waitIO & !IOReady)) begin
-        waitIO <= 1;
-      end
-      else begin
-        waitIO <= 0;
-      end
+      ioReady <= IOReady;
     end
   end
 
@@ -259,19 +255,14 @@ module ExecutionControl
   assign Control = control;
   
   always @ * begin
-    if(~Reset_n) begin
+    if(WaitIO) begin
+      control <= control;
+    end
+    else if(SkipCmd) begin
       control <= 0;
     end
     else begin
-      if(WaitIO) begin
-        control <= control;
-      end
-      else if(SkipCmd) begin
-        control <= 0;
-      end
-      else begin
-        control <= MicroInstruction;
-      end
+      control <= MicroInstruction;
     end
   end
 
@@ -366,7 +357,7 @@ module ControlUnit
 
   ExecutionControl
     #(INSTR_NUM, CNTRL_WITH)
-    Exec(Reset_n, MicroInstruction, SkipCmd, IOReady, IOActivity,
+    Exec(Reset_n, Clock, MicroInstruction, SkipCmd, IOReady, IOActivity,
         Control, WaitIO);
 
   ProgramCounter
